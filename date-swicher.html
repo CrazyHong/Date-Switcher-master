@@ -1,0 +1,188 @@
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.css" />
+    <style>
+        .dates-bar {
+            border: solid 1px #e7e7e7;
+            display: block;
+            width: 590px;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            padding: 0 50px;
+            position: relative;
+            font-size: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+            .dates-bar a {
+                display: block;
+                height: 70px;
+                width: 70px;
+                color: #a2a2a2;
+                text-align: center;
+                display: inline-block;
+                border-right: 1px solid #E7E7E7;
+                -moz-box-sizing: border-box;
+                -webkit-box-sizing: border-box;
+                box-sizing: border-box;
+                cursor: pointer;
+                transition: color .2s, transform .2s;
+                -webkit-transition: color .2s, transform .2s;
+                -moz-transition: color .2s, transform .2s;
+                z-index: 0;
+            }
+
+                .dates-bar a:hover {
+                    color: #686666;
+                }
+
+                .dates-bar a span {
+                    transition: color .2s, transform .2s;
+                    -webkit-transition: color .2s, -webkit-transform .2s;
+                    -moz-transition: color .2s, -moz-transform .2s;
+                }
+
+                    .dates-bar a span:nth-child(1) {
+                        padding-top: 15px;
+                    }
+
+                .dates-bar a.selected {
+                    color: #696969;
+                }
+
+                    .dates-bar a.selected > span.date {
+                        transform: scale(1.2, 1.2);
+                        -moz-transform: scale(1.2, 1.2);
+                        -webkit-transform: scale(1.2, 1.2);
+                    }
+
+                .dates-bar a.prev,
+                .dates-bar a.next {
+                    position: absolute;
+                    top: 0;
+                    width: 50px;
+                    min-width: 0;
+                    font-size: 20px;
+                    background-color: white;
+                    font-size: 30px;
+                    z-index: 2;
+                    display: inline-block;
+                }
+
+                    .dates-bar a.prev i,
+                    .dates-bar a.next i {
+                        line-height: 70px;
+                    }
+
+            .dates-bar .md span {
+                display: inline-block;
+                min-width: 60px;
+                text-align: center;
+            }
+
+            .dates-bar a.prev {
+                left: 0;
+            }
+
+            .dates-bar a.next {
+                right: 0;
+                border-left: solid 1px #e7e7e7;
+            }
+
+            .dates-bar a span.year {
+                display: block;
+                font-size: 20px;
+            }
+
+
+            .dates-bar a span.md {
+                font-size: 15px;
+            }
+    </style>
+</head>
+<body>
+    <div class="dates-bar">
+        <a class="prev"><i class="icon-angle-left"></i></a>
+        <!-- add date selector here-->        
+        <a class="next"><i class="icon-angle-right"></i></a>
+    </div>
+    <script src="js/jquery.min.js"></script>
+    <script>
+        var datebar = $(".dates-bar");
+
+        function dateparser(s) {
+            return s < 10 ? '0' + s : s;
+        }
+
+        $(function () {
+            var currentDate = new Date(),
+                year = currentDate.getFullYear(),
+                month = currentDate.getMonth() + 1,
+                date = currentDate.getDate();            
+            for (var i = 6; i >= 0  ; i--) {
+                var displayDate = new Date(currentDate.getTime() - 86400000 * i),
+                    fullDate = dateparser(displayDate.getMonth() + 1) + "/" + dateparser(displayDate.getDate()) + "/" + displayDate.getFullYear();
+                var selector = "";
+                if (i == 0) {
+                    selector += "<a class='selected' data-date='" + fullDate + "'>";
+                }
+                else {
+                    selector += "<a data-date='" + fullDate + "'>";
+                }
+                selector += "<span class='year'>" + displayDate.getFullYear()+ "</span>";
+                selector += "<span class='md'>" + dateparser(displayDate.getMonth() + 1) + "/" + dateparser(displayDate.getDate()) + "</span>";
+                selector += "</a>";
+                datebar.children("a.next").before(selector);
+            }
+            datebar.children("a.prev").on("click", function () {
+                var prevEndDate = new Date(datebar.children("a:not(.prev,.next)").first().data("date")),
+                    newDate = new Date(prevEndDate.getTime() - 86400000),
+                    newFullDate = dateparser(newDate.getMonth() + 1) + "/" + dateparser(newDate.getDate()) + "/" + newDate.getFullYear();
+                var selector = "";
+                selector += "<a style='margin-left:-70px;' data-date='" + newFullDate + "'>";
+                selector += "<span class='year'>" + newDate.getFullYear() + "</span>";
+                selector += "<span class='md'>" + dateparser(newDate.getMonth() + 1) + "/" + dateparser(newDate.getDate()) + "</span>";
+                selector += "</a>";
+                datebar.children("a.prev").after(selector);
+                $.when(datebar.children("a:not(.prev, .next, .noevent):visible():eq(0)").animate({
+                    marginLeft: "+=70px"
+                }, 500)).done(function () {
+                    datebar.children("a:not(.prev,.next)").first().removeAttr("style");
+                    datebar.children("a:not(.prev,.next)").last().remove();
+                });
+                
+            });
+
+            datebar.children("a.next").on("click", function () {
+                var prevEndDate = new Date(datebar.children("a:not(.prev,.next)").last().data("date")),
+                    newDate = new Date(prevEndDate.getTime() + 86400000),
+                    newFullDate = dateparser(newDate.getMonth() + 1) + "/" + dateparser(newDate.getDate()) + "/" + newDate.getFullYear();
+                var selector = "";               
+                selector += "<a data-date='" + newFullDate + "'>";                
+                selector += "<span class='year'>" + newDate.getFullYear() + "</span>";
+                selector += "<span class='md'>" + dateparser(newDate.getMonth() + 1) + "/" + dateparser(newDate.getDate()) + "</span>";
+                selector += "</a>";
+                datebar.children("a.next").before(selector);
+                $.when(datebar.children("a:not(.prev, .next, .noevent):visible():eq(0)").animate({
+                    marginLeft: "-=70px"
+                }, 500)).done(function () {
+                    datebar.children("a:not(.prev,.next)").first().remove();
+                });                
+            });
+
+            datebar.on("click","a:not(.prev,.next)",function () {
+                $(this).siblings().removeClass("selected");
+                $(this).addClass("selected");
+            });
+        });
+    </script>
+</body>
+</html>
